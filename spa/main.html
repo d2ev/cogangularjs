@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title></title>
+    <link href="https://getbootstrap.com/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body ng-app="myApp">
+
+<ng-view></ng-view>
+<script src="
+https://ajax.googleapis.com/ajax/libs/angularjs/1.5.3/angular.js
+ "></script>
+<script src="
+https://ajax.googleapis.com/ajax/libs/angularjs/1.5.3/angular-route.js
+ "></script>
+<script>
+    var app = angular.module('myApp', ['ngRoute'])
+
+    app.validateRole = function($q, $http){
+
+
+
+        var defer = $q.defer();
+        console.log(defer)
+
+        $http({
+            url: 'role.json',
+            method: 'GET'
+        }).success(function(response){
+            if(response.role == 'admin'){
+                defer.resolve();
+            }
+            else{
+                defer.reject();
+            }
+        })
+
+
+        return  defer.promise;
+    }
+
+    app.config(function ($routeProvider) {
+        $routeProvider.when("/", {
+            templateUrl: 'partials/login.html',
+            controller: 'AppCtrl'
+        }).when("/landing", {
+            templateUrl: 'partials/landing.html',
+            controller: 'LandingCtrl',
+            resolve: {
+                validateRole: app.validateRole
+            }
+
+        }).when("/magazine/:city", {
+           redirectTo: function(routeParams, path, search){
+               console.log(routeParams)
+               console.log(path)
+               console.log(search)
+               return '/' + routeParams.city
+           }
+        })
+
+       .when("/delhi", {
+            templateUrl: 'partials/delhi.html',
+            controller: 'LandingCtrl'
+        }).when("/hyderabad", {
+            templateUrl: 'partials/hyderabad.html',
+            controller: 'LandingCtrl'
+        }).
+
+
+                otherwise({
+                    redirectTo: '/'
+                })
+    })
+
+
+    app.controller('AppCtrl', function ($scope, CommonData, $http, $location) {
+        console.log('Initialized')
+        $scope.data = CommonData;
+
+        $scope.authenticate = function () {
+            $http({
+                url: 'dummy.json',
+                method: 'GET'
+            }).success(function (response) {
+                if (response.auth == false) {
+                    $scope.errorMessage = "Invalid User/Password"
+                }
+                else {
+                    $location.path("/landing")
+                }
+            })
+        }
+
+    })
+
+    app.controller('LandingCtrl', function ($scope, CommonData) {
+        console.log('Initialized')
+        $scope.data = CommonData;
+    })
+
+    app.factory('CommonData', function () {
+        return {
+            email: '',
+            password: ''
+
+        }
+    })
+</script>
+
+</body>
+</html>
